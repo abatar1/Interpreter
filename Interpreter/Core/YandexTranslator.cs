@@ -3,15 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Interpreter.Core
 {
     public sealed class YandexTranslator
-    {
-        
-
+    {       
         public YandexTranslator(string supportedLanguagesFilename, string configFilename)
         {
             _supportedLanguagesFilename = supportedLanguagesFilename;
@@ -20,37 +19,55 @@ namespace Interpreter.Core
 
         public Language DetermineLanguage(string text)
         {
-            var urlText = Uri.EscapeUriString(text);
+            var urlText = FormatText(text);
             var query = $"{ServiceUrl}/detect?key={ApiKey}&text={urlText}";
             var rawJson = GetStringFromQuery(query);
-            var langCode = JObject.Parse(rawJson)["lang"].ToString();
-            var langName = SupportedLanguages[langCode];
-            return new Language {Code = langCode, Name = langName};
+
+            return TryParseResponse(rawJson, s => {
+                var langCode = JObject.Parse(rawJson)["lang"].ToString();
+                var langName = SupportedLanguages[langCode];
+                return new Language {Code = langCode, Name = langName};
+            });
         }
 
         public string TranslateText(string text, string fromCode, string toCode)
         {
-            var urlText = Uri.EscapeUriString(text);
+            var urlText = FormatText(text);
             var translationDir = $"{fromCode}-{toCode}";
             var query = $"{ServiceUrl}/translate?key={ApiKey}&text={urlText}&lang={translationDir}";
             var rawJson = GetStringFromQuery(query);
 
+            return TryParseResponse(rawJson, s => JObject.Parse(rawJson)["text"][0].ToString());
+        }
+
+        private static T TryParseResponse<T>(string rawJson, Func<string, T> processor)
+        {
             var returnCode = int.Parse(JObject.Parse(rawJson)["code"].ToString());
             switch (returnCode)
             {
-                case 413:
-                    throw new LanguageTranslateException("Превышен максимально допустимый размер текста");
-                case 422:
-                    throw new LanguageTranslateException("Текст не может быть переведен");
-                case 501:
-                    throw new LanguageTranslateException("Заданное направление перевода не поддерживается");
-                case 404:
-                    throw new LanguageTranslateException("Превышено суточное ограничение на объем переведенного текста");
                 case 200:
-                    return JObject.Parse(rawJson)["text"][0].ToString();
+                    return processor(rawJson);
+                case 401:
+                    throw new ApiTranslateException("Неправильный API-ключ");
+                case 402:
+                    throw new ApiTranslateException("API-ключ заблокирован.");
+                case 404:
+                    throw new ApiTranslateException("Превышено суточное ограничение на объем переведенного текста.");
+                case 413:
+                    throw new LanguageTranslateException("Превышен максимально допустимый размер текста.");
+                case 422:
+                    throw new LanguageTranslateException("Текст не может быть переведен.");
+                case 501:
+                    throw new LanguageTranslateException("Заданное направление перевода не поддерживается.");                                
             }
+            return default(T);
+        }
 
-            return null;
+        private static string FormatText(string text)
+        {
+            var fittedText = Regex.Replace(text, @"(\s)\s+", "$1").Trim();
+            if (fittedText == "") throw new LanguageTranslateException("Пустое поле ввода.");
+            return Uri.EscapeUriString(fittedText);
         }
 
         private static string GetStringFromQuery(string query)
@@ -67,7 +84,6 @@ namespace Interpreter.Core
 
         private readonly string _supportedLanguagesFilename;
         private readonly string _configFilename;
-
         private const string ServiceUrl = "https://translate.yandex.net/api/v1.5/tr.json/";
 
         private IDictionary<string, string> _supportedLanguages;

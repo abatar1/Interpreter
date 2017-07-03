@@ -23,7 +23,7 @@ namespace Interpreter.UI
             InitializeLanguageListControl(outputLanguageComboBox, languages: supportedLanguages, displayMember: "Value", valueMember: "Key");
         }
 
-        private void InitializeLanguageListControl(ListControl comboBox, IDictionary<string, string> languages, string displayMember, string valueMember)
+        private static void InitializeLanguageListControl(ListControl comboBox, IDictionary<string, string> languages, string displayMember, string valueMember)
         {
             comboBox.DataSource = new BindingSource(languages, null);
             comboBox.DisplayMember = displayMember;
@@ -31,9 +31,25 @@ namespace Interpreter.UI
             comboBox.SelectedIndex = -1;
         }
 
-        private void SetComboBoxSelectedItem(ListControl comboBox, string name)
+        private string SetComboBoxSelectedItem(ListControl comboBox, Control textBox)
         {
-            comboBox.SelectedIndex = inputLanguageComboBox.FindString(name);
+            var lang = new Language();
+            try
+            {
+                lang = YandexTranslator.DetermineLanguage(textBox.Text);
+            }
+            catch (LanguageTranslateException ex)
+            {
+                messageLabel.Text = ex.Message;
+            }
+            catch (ApiTranslateException ex)
+            {
+                messageLabel.Text = ex.Message;
+                CreatePopupForm();
+            }
+
+            comboBox.SelectedIndex = inputLanguageComboBox.FindString(lang.Name);
+            return lang.Code;
         }
 
         private void translateButton_Click(object sender, EventArgs e)
@@ -42,19 +58,14 @@ namespace Interpreter.UI
             {
                 messageLabel.Text = "Пожалуйста, выберите язык перевода.";
             }
-            else if (translateInputTextBox.Text == "")
-            {
-                messageLabel.Text = "Пожалуйста, ввведите переводимый текст";
-            }
             else
             {
                 messageLabel.Text = "";
 
-                var fromLang = "";
+                string fromLang;
                 if (inputLanguageComboBox.SelectedItem == null)
                 {
-                    fromLang = YandexTranslator.DetermineLanguage(translateInputTextBox.Text).Code;
-                    SetComboBoxSelectedItem(inputLanguageComboBox, fromLang);
+                    fromLang = SetComboBoxSelectedItem(inputLanguageComboBox, translateInputTextBox);
                 }
                 else
                 {
@@ -73,24 +84,21 @@ namespace Interpreter.UI
                 catch (LanguageTranslateException ex)
                 {
                     messageLabel.Text = ex.Message;
-                }              
+                }
+                catch (ApiTranslateException ex)
+                {
+                    messageLabel.Text = ex.Message;
+                    CreatePopupForm();
+                }
             }            
         }
 
         private void determineButton_Click(object sender, EventArgs e)
         {
-            if (translateInputTextBox.Text == "")
-            {
-                messageLabel.Text = "Пожалуйста, ввведите переводимый текст";
-            }
-            else
-            {
-                var langName = YandexTranslator.DetermineLanguage(translateInputTextBox.Text).Name;
-                SetComboBoxSelectedItem(inputLanguageComboBox, langName);
-            }         
+            SetComboBoxSelectedItem(inputLanguageComboBox, translateInputTextBox);         
         }
 
-        private void PopupFormInvoked(object sender, EventArgs e)
+        private void CreatePopupForm()
         {
             using (var form = new PopupForm())
             {
@@ -99,6 +107,11 @@ namespace Interpreter.UI
                     YandexTranslator.ApiKey = form.Key;
                 }
             }
+        }
+
+        private void PopupFormInvoked(object sender, EventArgs e)
+        {
+            CreatePopupForm();
         }
 
         public YandexTranslator YandexTranslator { get; private set; }
