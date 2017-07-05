@@ -35,6 +35,8 @@
             this.outputLanguageComboBox = new System.Windows.Forms.ComboBox();
             this.messageLabel = new System.Windows.Forms.Label();
             this.determineButton = new System.Windows.Forms.Button();
+            this.clearButton = new System.Windows.Forms.Button();
+            this.swapButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // translateInputTextBox
@@ -66,6 +68,7 @@
             // 
             // inputLanguageComboBox
             // 
+            this.inputLanguageComboBox.ItemHeight = 13;
             this.inputLanguageComboBox.Location = new System.Drawing.Point(27, 23);
             this.inputLanguageComboBox.Name = "inputLanguageComboBox";
             this.inputLanguageComboBox.Size = new System.Drawing.Size(121, 21);
@@ -91,17 +94,41 @@
             this.determineButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.determineButton.Location = new System.Drawing.Point(155, 22);
             this.determineButton.Name = "determineButton";
-            this.determineButton.Size = new System.Drawing.Size(149, 23);
+            this.determineButton.Size = new System.Drawing.Size(131, 23);
             this.determineButton.TabIndex = 6;
             this.determineButton.Text = "Determine the language";
             this.determineButton.UseVisualStyleBackColor = true;
             this.determineButton.Click += new System.EventHandler(this.determineButton_Click);
+            // 
+            // clearButton
+            // 
+            this.clearButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.clearButton.Location = new System.Drawing.Point(292, 22);
+            this.clearButton.Name = "clearButton";
+            this.clearButton.Size = new System.Drawing.Size(47, 23);
+            this.clearButton.TabIndex = 7;
+            this.clearButton.Text = "Clear";
+            this.clearButton.UseVisualStyleBackColor = true;
+            this.clearButton.Click += new System.EventHandler(this.clearButton_Click);
+            // 
+            // swapButton
+            // 
+            this.swapButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.swapButton.Location = new System.Drawing.Point(345, 22);
+            this.swapButton.Name = "swapButton";
+            this.swapButton.Size = new System.Drawing.Size(47, 23);
+            this.swapButton.TabIndex = 8;
+            this.swapButton.Text = "Swap";
+            this.swapButton.UseVisualStyleBackColor = true;
+            this.swapButton.Click += new System.EventHandler(this.swapButton_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(793, 299);
+            this.Controls.Add(this.swapButton);
+            this.Controls.Add(this.clearButton);
             this.Controls.Add(this.determineButton);
             this.Controls.Add(this.messageLabel);
             this.Controls.Add(this.outputLanguageComboBox);
@@ -129,6 +156,8 @@
         private System.Windows.Forms.ComboBox outputLanguageComboBox;
         private System.Windows.Forms.Label messageLabel;
         private System.Windows.Forms.Button determineButton;
+        private System.Windows.Forms.Button clearButton;
+        private System.Windows.Forms.Button swapButton;
     }
 }
 

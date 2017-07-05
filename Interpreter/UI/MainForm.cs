@@ -115,5 +115,18 @@ namespace Interpreter.UI
         }
 
         public YandexTranslator YandexTranslator { get; private set; }
+
+        private void clearButton_Click(object sender, EventArgs e)
+        {
+            translateInputTextBox.Text = "";
+            translateOutputTextBox.Text = "";
+        }
+
+        private void swapButton_Click(object sender, EventArgs e)
+        {
+            var inputItem = inputLanguageComboBox.SelectedItem;
+            inputLanguageComboBox.SelectedItem = outputLanguageComboBox.SelectedItem;
+            outputLanguageComboBox.SelectedItem = inputItem;
+        }
     }
 }
